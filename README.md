@@ -1,10 +1,10 @@
 # qoala
 Assignment Solutions
-Task1 : https://github.com/shivam3032gupta/qoala/tree/main/terraform/
-Task2:  https://github.com/shivam3032gupta/qoala/tree/main/kubernetes
-Task4:  https://github.com/shivam3032gupta/qoala/tree/main/Automation
+## Task1 : https://github.com/shivam3032gupta/qoala/tree/main/terraform/
+## Task2:  https://github.com/shivam3032gupta/qoala/tree/main/kubernetes
+## Task4:  https://github.com/shivam3032gupta/qoala/tree/main/Automation
 
-##Task3: I have not worked with github action workflows but same can be done via jenkins and bitbucket  and argocd
+## Task3: I have not worked with github action workflows but same can be done via jenkins and bitbucket  and argocd
 
 Mentioning the approach below: 
 - Create a jenkins job that polls scm every time a code is pushed or merged into it , build the application using mvn , node or whatever application type is.
