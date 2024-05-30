@@ -1,0 +1,14 @@
+
+# Process to scale ec2 on cpu utlization
+
+We can implement the application service in ASG in aws . 
+then ASG provides you the functionality to scale up or scale down the instances based on a cloud watch alarm that you create for cpu utilization
+
+Let suppose you create a cpu utilization alarm in cloudwatch:\
+threshold: 50$
+period: 5 minutes
+datapoints: 3
+
+then if 3 consecutive data points are encountered in which cpu utilization was greater then 50% for 5 minutes the alarm will trigger, Cloud watch alarm can be used then  to scale the asg if alarm is in active state.
+
+You can add scaling policies in asg to increase n number of instances if alarm gets trigerred . 
