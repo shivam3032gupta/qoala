@@ -1,3 +1,11 @@
+# create vpc resource
+locals {
+    tags = {
+        Environment = "test"
+        Project     = "test"
+    }
+ 
+}
 
 resource "aws_vpc"  "vpc" {
 
@@ -5,9 +13,11 @@ resource "aws_vpc"  "vpc" {
     tags = merge({
         Name = var.vpc_name
 
-    },local.common_tags)
+    },local.tags)
 }
 
+
+# create private subnet based on cidr  blocks list for private subnet
 
 resource "aws_subnet" "private_subnet" {
     count = length(var.private_subnet_cidr_blocks)
@@ -19,6 +29,8 @@ resource "aws_subnet" "private_subnet" {
     depends_on = [ aws_vpc.vpc ]
 }
 
+
+# create public subnet based on cidr  blocks list for public subnet
 
 resource "aws_subnet" "public_subnet" {
     count = length(var.public_subnet_cidr_blocks)
@@ -32,14 +44,16 @@ resource "aws_subnet" "public_subnet" {
 
 
 
+# create internet gateway and attach to vpc
+
 resource "aws_internet_gateway" "igw" {
-  count = length(var.public_subnet_cidr_blocks)
+  
   vpc_id = aws_vpc.vpc.id
   tags = local.tags
 }
 
 
-
+# craete route table for public subnet and add route to internet gateway 
 resource "aws_route_table" "route_table_public" {
   vpc_id = aws_vpc.vpc.id
   route {
@@ -47,9 +61,11 @@ resource "aws_route_table" "route_table_public" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-    depends_on = [ aws_subent.private_subnet ]
+    depends_on = [ aws_subent.public_subnet ]
 }
 
+
+# associate public subnet with route table which is having igw attached .. which makes it public subnet
 
 resource "aws_route_table_association" "public_subnet_association" {
   count = length(var.public_subnet_cidr_blocks)
@@ -60,11 +76,13 @@ resource "aws_route_table_association" "public_subnet_association" {
 
 
 
+# create nat gateway and associate with private subnet
 resource "aws_eip" "nat_eip" {
     count = length(var.private_subnet_cidr_blocks)
     vpc   = true
     tags  = local.tags
 }
+
 
 
 resource "aws_nat_gateway" "nat_gateway" {

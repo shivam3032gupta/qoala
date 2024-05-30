@@ -1,7 +1,7 @@
 locals {
     certificate = {
-        "paytm" = "arn:aws:acm:ap-south-1:1234567788:certificate/*********",
-        "paytmpayments" = "arn:aws:acm:ap-south-1:123453473:certificate/********"
+        "abc" = "arn:aws:acm:ap-south-1:1234567788:certificate/*********",
+        "xyz" = "arn:aws:acm:ap-south-1:123453473:certificate/********"
     }
 }
 
