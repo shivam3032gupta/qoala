@@ -5,7 +5,7 @@ We can implement the application service in ASG in aws .
 then ASG provides you the functionality to scale up or scale down the instances based on a cloud watch alarm that you create for cpu utilization
 
 Let suppose you create a cpu utilization alarm in cloudwatch:\
-threshold: 50$
+threshold: 50%
 period: 5 minutes
 datapoints: 3
 
