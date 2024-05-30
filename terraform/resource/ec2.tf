@@ -1,6 +1,6 @@
 module "test_resource" {
     source = "../modules/ec2"
-    state_file_bucket = "terraform-ppsl-state-file"
+    state_file_bucket = "terraform-state-file"
     vpc_state_file_path = "models/ppsl/vpc/launch_infra/terraform.tfstate"
     aws_region = "ap-south-1"
     instance_count = 3

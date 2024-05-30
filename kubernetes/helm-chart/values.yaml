@@ -45,15 +45,15 @@ publicAnnotations:
 
 labels:
   envtype: "staging"
-  app_name: "ump-onboarding-service"
+  app_name: "test-service"
   customer: "merchant-devops"
   businessunit: "paytm"
   techteam: "merchant_devops"
-  app: "ump-onboarding-service"
+  app: "test-service"
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: "ump-onboarding-service"
+fullnameOverride: "test-service"
 
 container:
   port: 8080
