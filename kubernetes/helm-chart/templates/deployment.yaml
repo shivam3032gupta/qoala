@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "newApp.fullname" . }}
+  labels:
+    {{- include "newApp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "newApp.selectorLabels" . | nindent 6 }}
+  {{- with .Values.strategyType }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "newApp.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
+      serviceAccountName: {{ include "newApp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+      - maxSkew: {{ .Values.topologySpreadConstraints.maxSkew }}
+        topologyKey: {{ .Values.topologySpreadConstraints.topologyKey }}
+        whenUnsatisfiable: {{ .Values.topologySpreadConstraints.whenUnsatisfiable }}
+        labelSelector:
+          matchLabels:
+            {{- include "newApp.labels" . | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ include "newApp.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
+          {{- end }}
+          env:
+          {{- range $key, $value := .Values.env }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end }}
+          volumeMounts:
+          - name: logs-volume
+            mountPath: {{ .Values.applogs }}
+          {{- if .Values.persistence.enabled }}
+          - name: {{ .Values.persistence.mountName }}
+            mountPath: {{ .Values.persistence.mountPath }}
+          {{- end }}
+          {{- if .Values.newrelic.enabled }}
+          - name: {{ include "newApp.fullname" . }}-configmap-newrelic
+            mountPath: "{{ .Values.newrelic.path }}"
+            subPath: newrelic.yml
+          {{- end }}
+          {{- if .Values.baseVolumeClaim.enabled }}
+          - name: basedata
+            mountPath: "{{ .Values.baseVolumeClaim.path }}"
+          {{- end }}
+          {{- if .Values.externalsecrets.enabled }}
+          - name: {{ include "newApp.fullname" . }}
+            mountPath: "{{ .Values.externalsecrets.mountPath }}"
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.container.port }}
+              protocol: TCP
+            {{- if .Values.glowroot.enabled }}
+            - name: glowroot
+              containerPort: 4000
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.probes.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessProbe.path }}
+              port: {{ .Values.probes.livenessProbe.port }}
+            initialDelaySeconds: {{ .Values.probes.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}
+            initialDelaySeconds: {{ .Values.probes.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.livenessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.probes.execCommand }}
+          livenessProbe:
+            exec:
+              command:
+              - {{ .Values.probes.execCommand }}
+            initialDelaySeconds: {{ .Values.probes.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.livenessProbe.periodSeconds }}
+          readinessProbe:
+            exec:
+              command:
+              - {{ .Values.probes.execCommand }}
+            initialDelaySeconds: {{ .Values.probes.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readinessProbe.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: logs-volume
+          hostPath:
+            type: DirectoryOrCreate
+            path: {{ .Values.applogs }}
+        {{- if .Values.baseVolumeClaim.enabled }}
+        - name: basedata
+          persistentVolumeClaim:
+            claimName: {{ .Values.baseVolumeClaim.claimName }}
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: {{ .Values.persistence.mountName }}
+          persistentVolumeClaim:
+            claimName: {{ include "newApp.fullname" . }}
+        {{- end }}
+        {{- if .Values.externalsecrets.enabled }}
+        - name: {{ include "newApp.fullname" . }}
+          secret:
+            secretName: {{ include "newApp.fullname" . }}
+        {{- end }}
+      {{- if .Values.newrelic.enabled }}
+        - name: {{ include "newApp.fullname" . }}-configmap-newrelic
+          configMap:
+            name: {{ include "newApp.fullname" . }}-configmap-newrelic
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

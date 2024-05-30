@@ -1,0 +1,24 @@
+{{- if .Values.publicAnnotations.enabled -}}
+{{- $svcPort := .Values.service.port -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ include "newApp.fullname" . }}-public
+  labels:
+    {{- include "newApp.labels" . | nindent 4 }}
+  annotations:
+{{ toYaml .Values.publicAnnotations.annotations | indent 4 }}
+spec:
+  rules:
+    - host: {{ .Values.publicDomain }}
+      http:
+        paths:
+          - path:
+            backend:
+              serviceName: {{ .Values.publicIngress }}-nginx
+              servicePort: {{ $svcPort }}
+  {{- end }}

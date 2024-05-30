@@ -1,0 +1,18 @@
+{{- if .Values.destinationrule.enabled }}
+apiVersion: networking.istio.io/v1beta1 
+kind: DestinationRule 
+metadata:
+  name: {{ include "newApp.fullname" . }}
+  labels:
+    {{- include "newApp.labels" . | nindent 4 }}
+  {{- with .Values.destinationrule.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  hosts: {{ .Values.destinationrule.hosts }}
+  {{- if .Values.destinationrule.subsets }}
+  subsets:
+  {{- toYaml .Values.destinationrule.subsets | nindent 2 }} 
+  {{- end }}
+{{- end }}

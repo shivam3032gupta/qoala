@@ -1,0 +1,33 @@
+{{- if .Values.virtualservice.enabled }}
+apiVersion: networking.istio.io/v1beta1 
+kind: VirtualService
+metadata:
+  name: {{ include "newApp.fullname" . }}
+  labels:
+    {{- include "newApp.labels" . | nindent 4 }}
+  {{- with .Values.virtualservice.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.virtualservice.hosts }}
+  hosts:
+  {{- range .Values.virtualservice.hosts }}
+  - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.virtualservice.gateways }}
+  gateways:
+  {{- range .Values.virtualservice.gateways }}
+  - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.virtualservice.http }}
+  http:
+  {{- toYaml .Values.virtualservice.http | nindent 2 }} 
+  {{- end }}
+  {{- if .Values.virtualservice.tcp }}
+  tcp:
+  {{- toYaml .Values.virtualservice.tcp | nindent 2 }}
+  {{- end }}
+{{- end }}

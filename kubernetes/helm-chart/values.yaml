@@ -1,0 +1,229 @@
+applogs: /paytm/logs
+
+# Default values for newApp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+strategyType:
+    type: RollingUpdate
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+domain: ""
+publicDomain: ""
+publicIngress: "newApp"
+
+bucketName: "merchant-state-files-eks-terraform"
+environment: "nonprod"
+springProfileActive: "qa"
+
+services:
+  enabled: true
+
+Canary:
+  enabled: false
+  replicaCount: 1
+
+newrelic:
+  enabled: false
+  licencse_key: ""
+  app_name: "disbursal-web"
+  log_level_app: "info"
+  path: "/var/www/disbursal-web/newrelic.yml"
+
+publicAnnotations:
+  enabled: false
+  annotations:
+    kubernetes.io/ingress.class: nginx-public
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "100m"
+
+labels:
+  envtype: "staging"
+  app_name: "ump-onboarding-service"
+  customer: "merchant-devops"
+  businessunit: "paytm"
+  techteam: "merchant_devops"
+  app: "ump-onboarding-service"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "ump-onboarding-service"
+
+container:
+  port: 8080
+
+glowroot:
+  enabled: false
+
+probes:
+  enabled: false
+  livenessProbe:
+    path: /health
+    port: 8080
+    initialDelaySeconds: 180
+    periodSeconds: 15
+    timeoutSeconds: 1
+
+  readinessProbe:
+    path: /health
+    port: 8080
+    initialDelaySeconds: 180
+    periodSeconds: 15
+    timeoutSeconds: 1
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+vault:
+  create: false
+  properties: ""
+
+ingress:
+  enabled: false
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 200Mi
+  requests:
+    cpu: 100m
+    memory: 100Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 70
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  APPLICATION_LOG_PATH: /paytm/logs
+  ENABLE_NEW_RELIC: "false"
+  ENABLE_JACOCO: "false"
+
+baseVolumeClaim:
+ enabled: false
+ claimName: automations-base
+ path: /opt/jacoco
+
+
+#topologySpreadConstraints:
+#  maxSkew: 1
+#  topologyKey: zone
+#  whenUnsatisfiable: DoNotSchedule
+
+#lifecycle:
+#  preStop:
+#    exec:
+#      command:
+#      - sh
+#      - /opt/jacoco/processKill.sh
+
+externalsecrets:
+  enabled: false
+  backendType: vault
+  vaultMountPoint: merchant-eks-nonprod
+  vaultRole: merchant-eks-nonprod-role
+  kvVersion: 1
+  dataFrom: kv/merchant-eks-nonprod/test/test
+  mountPath: /tmp/secrets
+
+istio:
+  labels: false
+
+virtualservice:
+  enabled: false
+#  hosts:
+#  - abc.paytm.com
+#  gateways:
+#  - mygateway
+#  http:
+#  - match:
+#    - uri:
+#        prefix: "/productpage"
+#    delegate:
+#       name: productpage
+#       namespace: nsA
+#  - match:
+#    - uri:
+#        prefix: "/reviews"
+#    delegate:
+#        name: reviews
+#        namespace: nsB
+#  tcp:
+#  - match:
+#    - port: 27017
+#    route:
+#    - destination:
+#        host: mongo.backup.svc.cluster.local
+#        port:
+#          number: 5555
+
+
+destinationrule:
+  enabled: false
+#  hosts: def.paytm.com
+#  subsets:
+#  - name: v1
+#    labels:
+#      version: v1
+#  - name: v2
+#    labels:
+#      version: v2
+
+persistence:
+  enabled: false
+#  storageClass: "gp3"
+#  accessMode: ReadWriteOnce
+#  size: 1Gi
+#  mountName: "jacco"
+#  mountPath: "/opt/jacco"
